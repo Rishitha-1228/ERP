@@ -1,0 +1,46 @@
+/* ==========================================================================
+   VertexERP Design Tokens
+   Direction: "Operations ledger" — a purpose-built industrial feel for a
+   wholesale/distribution back-office, not a generic SaaS admin template.
+   Data (SKUs, challan numbers, stock counts, timestamps) is set in mono,
+   the way it would be printed on an actual stock tag or manifest.
+   ========================================================================== */
+
+:root {
+  /* Color — ledger navy + manifest amber */
+  --ink: #161b1f;
+  --ink-soft: #454c52;
+  --paper: #f3f1ea;
+  --surface: #ffffff;
+  --line: #e0ddd3;
+  --line-strong: #c9c5b7;
+
+  --navy: #1f3a5c;
+  --navy-deep: #142943;
+  --navy-tint: #eaeff4;
+
+  --amber: #c1721f;
+  --amber-tint: #faeddb;
+
+  --success: #2f6b4f;
+  --success-tint: #e6f1ea;
+  --danger: #a6402a;
+  --danger-tint: #fbeae6;
+  --warning: #9c6b13;
+  --warning-tint: #fbf1de;
+
+  /* Type */
+  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "Consolas", monospace;
+
+  /* Shape & rhythm */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 2px rgba(22, 27, 31, 0.06), 0 1px 0 rgba(22, 27, 31, 0.04);
+  --shadow-pop: 0 12px 28px rgba(22, 27, 31, 0.16);
+
+  --sidebar-w: 236px;
+  --topbar-h: 64px;
+}
