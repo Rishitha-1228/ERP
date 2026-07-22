@@ -46,6 +46,10 @@ const loginSchema = z.object({
     password: z
       .string()
       .min(1, "Password is required"),
+
+    role: z
+      .enum(["ADMIN", "SALES", "WAREHOUSE", "ACCOUNTS"])
+      .optional(),
   }),
 });
 
