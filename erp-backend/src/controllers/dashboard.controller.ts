@@ -6,8 +6,8 @@ export async function summary(req: Request, res: Response) {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  if (role === "ADMIN") {
-    const [totalSales, revenue, totalProducts, totalUsers, pendingOrders] = await Promise.all([
+ if (role === "ADMIN") {
+    const [totalSales, revenue, totalProducts, totalUsers, pendingOrders, lowStock] = await Promise.all([
       query(`SELECT COUNT(*)::int AS c FROM challans WHERE status = 'CONFIRMED'`),
       query(
         `SELECT COALESCE(SUM(ci.quantity),0)::int AS c FROM challan_items ci
@@ -16,6 +16,7 @@ export async function summary(req: Request, res: Response) {
       query(`SELECT COUNT(*)::int AS c FROM products`),
       query(`SELECT COUNT(*)::int AS c FROM users`),
       query(`SELECT COUNT(*)::int AS c FROM challans WHERE status = 'DRAFT'`),
+      query(`SELECT COUNT(*)::int AS c FROM products WHERE current_stock <= min_stock_alert`),
     ]);
     return res.json({
       success: true,
@@ -26,6 +27,7 @@ export async function summary(req: Request, res: Response) {
           { label: "Inventory (products)", value: totalProducts.rows[0].c },
           { label: "Users", value: totalUsers.rows[0].c },
           { label: "Pending Orders", value: pendingOrders.rows[0].c },
+          { label: "Low Stock Items", value: lowStock.rows[0].c },
         ],
       },
     });
