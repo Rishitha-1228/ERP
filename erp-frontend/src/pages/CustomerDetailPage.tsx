@@ -60,6 +60,7 @@ export function CustomerDetailPage() {
           <div className="detail-row"><dt>GST number</dt><dd className="mono">{customer.gstNumber || "—"}</dd></div>
           <div className="detail-row"><dt>Type</dt><dd>{customer.customerType}</dd></div>
           <div className="detail-row"><dt>Address</dt><dd>{customer.address || "—"}</dd></div>
+          <div className="detail-row"><dt>Follow-up date</dt><dd className="mono">{customer.followUpDate ? new Date(customer.followUpDate).toLocaleDateString() : "—"}</dd></div>
         </dl>
       </div>
 

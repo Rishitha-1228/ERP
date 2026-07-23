@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   customerType: "RETAIL" as Customer["customerType"],
   address: "",
   status: "LEAD" as Customer["status"],
+  followUpDate: "",
   notes: "",
 };
 
@@ -88,6 +89,7 @@ export function CustomersPage() {
       customerType: c.customerType,
       address: c.address || "",
       status: c.status,
+      followUpDate: c.followUpDate ? c.followUpDate.slice(0, 10) : "",
       notes: c.notes || "",
     });
 
@@ -604,6 +606,24 @@ return (
             setForm({
               ...form,
               address: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">
+          Follow-up Date
+        </label>
+
+        <input
+          className="input"
+          type="date"
+          value={form.followUpDate}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              followUpDate: e.target.value,
             })
           }
         />
