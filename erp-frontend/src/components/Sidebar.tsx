@@ -23,7 +23,7 @@ export function Sidebar({ role }: { role: Role }) {
           </NavLink>
         ))}
       </nav>
-      <div className="sidebar__footer">v1.0.0 · Mini ERP + CRM</div>
+      <div className="sidebar__footer">v1.0.0 · VertexERP</div>
     </aside>
   );
 }
