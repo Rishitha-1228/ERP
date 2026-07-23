@@ -2,7 +2,7 @@ import { pool } from "../config/database";
 import { logger } from "../utils/logger";
 
 /**
- * Creates all 10 tables for the Mini ERP + CRM system, using raw SQL
+ * Creates all 11 tables for the Mini ERP + CRM system, using raw SQL
  * (no ORM). Safe to re-run: every statement uses IF NOT EXISTS.
  */
 const statements: string[] = [
@@ -118,6 +118,17 @@ const statements: string[] = [
     quantity INTEGER NOT NULL CHECK (quantity > 0)
   );`,
 
+  // 11. payments - records money received against a customer's confirmed challans
+  `CREATE TABLE IF NOT EXISTS payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+    payment_date TIMESTAMPTZ NOT NULL DEFAULT now(),
+    note TEXT,
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );`,
+
   // Indexes for common lookups
   `CREATE INDEX IF NOT EXISTS idx_customers_name ON customers (name);`,
   `CREATE INDEX IF NOT EXISTS idx_customers_mobile ON customers (mobile);`,
@@ -125,6 +136,7 @@ const statements: string[] = [
   `CREATE INDEX IF NOT EXISTS idx_stock_movements_product ON stock_movements (product_id);`,
   `CREATE INDEX IF NOT EXISTS idx_challans_status ON challans (status);`,
   `CREATE INDEX IF NOT EXISTS idx_challan_items_challan ON challan_items (challan_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_payments_customer ON payments (customer_id);`,
 ];
 
 async function migrate() {
@@ -134,7 +146,7 @@ async function migrate() {
     for (const sql of statements) {
       await client.query(sql);
     }
-    logger.info("✅ All 10 tables created (or already existed).");
+    logger.info("✅ All 11 tables created (or already existed).");
   } catch (err) {
     logger.error("Migration failed", { err });
     throw err;

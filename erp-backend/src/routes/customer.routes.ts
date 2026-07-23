@@ -36,6 +36,13 @@ const noteSchema = z.object({
     note: z.string().min(1),
   }),
 });
+const paymentSchema = z.object({
+  body: z.object({
+    amount: z.number().positive(),
+    note: z.string().optional(),
+    paymentDate: z.string().optional(),
+  }),
+});
 
 // ===============================
 // Customer Routes
@@ -51,7 +58,12 @@ router.post(
   validate(createSchema),
   customerController.create
 );
-
+router.post(
+  "/:id/payments",
+  authorize("ADMIN", "ACCOUNTS"),
+  validate(paymentSchema),
+  customerController.addPayment
+);
 router.put(
   "/:id",
   authorize("ADMIN", "SALES"),

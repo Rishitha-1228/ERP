@@ -74,14 +74,47 @@ export async function getById(req: Request, res: Response) {
     [id]
   );
 
+  const totalBilledRes = await query(
+    `SELECT COALESCE(SUM(ci.unit_price_snap * ci.quantity), 0)::numeric AS total
+     FROM challans ch
+     JOIN challan_items ci ON ci.challan_id = ch.id
+     WHERE ch.customer_id = $1 AND ch.status = 'CONFIRMED'`,
+    [id]
+  );
+
+  const totalPaidRes = await query(
+    `SELECT COALESCE(SUM(amount), 0)::numeric AS total
+     FROM payments
+     WHERE customer_id = $1`,
+    [id]
+  );
+
+  const paymentsRes = await query(
+    `SELECT p.*, u.name AS created_by_name
+     FROM payments p
+     LEFT JOIN users u ON u.id = p.created_by
+     WHERE p.customer_id = $1
+     ORDER BY p.payment_date DESC`,
+    [id]
+  );
+
+  const totalBilled = Number(totalBilledRes.rows[0].total);
+  const totalPaid = Number(totalPaidRes.rows[0].total);
+
   res.status(200).json({
     success: true,
     data: {
       ...toCustomerDto(customer),
       followUpNotes: notesRes.rows.map(toNoteDto),
+      totalBilled,
+      totalPaid,
+      outstandingBalance: totalBilled - totalPaid,
+      payments: paymentsRes.rows.map(toPaymentDto),
     },
   });
 }
+
+
 
 export async function create(req: Request, res: Response) {
   const b = req.body;
@@ -232,7 +265,33 @@ export async function addNote(req: Request, res: Response) {
     data: toNoteDto(result.rows[0]),
   });
 }
+export async function addPayment(req: Request, res: Response) {
+  const { id } = req.params;
+  const { amount, note, paymentDate } = req.body;
 
+  const existing = await query(
+    `SELECT id FROM customers WHERE id=$1`,
+    [id]
+  );
+
+  if (existing.rows.length === 0) {
+    throw AppError.notFound("Customer not found");
+  }
+
+  const result = await query(
+    `INSERT INTO payments
+    (customer_id, amount, payment_date, note, created_by)
+    VALUES($1,$2,COALESCE($3, now()),$4,$5)
+    RETURNING *`,
+    [id, amount, paymentDate || null, note || null, req.user!.id]
+  );
+
+  res.status(201).json({
+    success: true,
+    message: "Payment recorded successfully.",
+    data: toPaymentDto(result.rows[0]),
+  });
+}
 function toCustomerDto(row: any) {
   return {
     id: row.id,
@@ -254,6 +313,16 @@ function toCustomerDto(row: any) {
 function toNoteDto(row: any) {
   return {
     id: row.id,
+    note: row.note,
+    createdByName: row.created_by_name,
+    createdAt: row.created_at,
+  };
+}
+function toPaymentDto(row: any) {
+  return {
+    id: row.id,
+    amount: Number(row.amount),
+    paymentDate: row.payment_date,
     note: row.note,
     createdByName: row.created_by_name,
     createdAt: row.created_at,

@@ -69,3 +69,16 @@ export async function addFollowUpNote(
 
   return res.data.data;
 }
+
+export async function addPayment(
+  id: string,
+  payload: { amount: number; note?: string; paymentDate?: string }
+) {
+  const res = await api.post<{
+    success: boolean;
+    message: string;
+    data: any;
+  }>(`/customers/${id}/payments`, payload);
+
+  return res.data.data;
+}

@@ -32,11 +32,25 @@ export interface Customer {
   createdAt: string;
 
   followUpNotes?: FollowUpNote[];
+
+  totalBilled?: number;
+  totalPaid?: number;
+  outstandingBalance?: number;
+  payments?: Payment[];
 }
 
 export interface FollowUpNote {
   id: string;
   note: string;
+  createdByName?: string;
+  createdAt: string;
+}
+
+export interface Payment {
+  id: string;
+  amount: number;
+  paymentDate: string;
+  note?: string | null;
   createdByName?: string;
   createdAt: string;
 }
