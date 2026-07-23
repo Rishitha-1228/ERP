@@ -42,6 +42,32 @@ export function ChallanDetailPage() {
     finally { setActionLoading(false); }
   }
 
+  async function handleDownloadPdf() {
+    if (!id || !challan) return;
+    setError("");
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`http://localhost:5000/api/challans/${id}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        setError("Failed to download PDF.");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `challan-${challan.challanNumber}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Failed to download PDF.");
+    }
+  }
+
   if (loading) return <p>Loading...</p>;
   if (!challan) return <p>Challan not found.</p>;
 
@@ -86,15 +112,21 @@ export function ChallanDetailPage() {
 
       {error && <div className="error-text">{error}</div>}
 
-      {challan.status === "DRAFT" && (
-        <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn btn-primary" disabled={actionLoading} onClick={handleConfirm}>Confirm (reduce stock)</button>
-          <button className="btn btn-danger" disabled={actionLoading} onClick={handleCancel}>Cancel challan</button>
-        </div>
-      )}
-      {challan.status === "CONFIRMED" && (
-        <button className="btn btn-danger" disabled={actionLoading} onClick={handleCancel}>Cancel &amp; restore stock</button>
-      )}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button className="btn" disabled={actionLoading} onClick={handleDownloadPdf}>
+          Download PDF
+        </button>
+
+        {challan.status === "DRAFT" && (
+          <>
+            <button className="btn btn-primary" disabled={actionLoading} onClick={handleConfirm}>Confirm (reduce stock)</button>
+            <button className="btn btn-danger" disabled={actionLoading} onClick={handleCancel}>Cancel challan</button>
+          </>
+        )}
+        {challan.status === "CONFIRMED" && (
+          <button className="btn btn-danger" disabled={actionLoading} onClick={handleCancel}>Cancel &amp; restore stock</button>
+        )}
+      </div>
     </div>
   );
 }
