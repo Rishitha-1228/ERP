@@ -141,3 +141,59 @@ npm run dev              # http://localhost:5173
 - The free hosting tiers (Render + Supabase + Vercel) mean the backend can
   take 30–50 seconds to respond on the very first request after a period of
   inactivity, as noted above.
+
+# 📸 Application Screenshots
+
+## 🔐 Login
+Secure JWT-based authentication with role-based access.
+
+![Login](screenshots/login.png)
+
+---
+
+## 👤 Sign Up
+Create new users with role selection.
+
+![Sign Up](screenshots/signup.png)
+
+---
+
+## 📊 Dashboard
+Overview of sales, revenue, inventory, users, and pending orders.
+
+![Dashboard](screenshots/dashboard.png)
+
+---
+
+## 👥 Customers
+Manage customers with search, filtering, activation, and editing.
+
+![Customers](screenshots/customers.png)
+
+---
+
+## 📦 Products
+Manage products, pricing, warehouse assignment, and stock levels.
+
+![Products](screenshots/products.png)
+
+---
+
+## 📋 Inventory
+Track inventory movements with IN/OUT history and stock ledger.
+
+![Inventory](screenshots/inventory.png)
+
+---
+
+## 🧾 Challans
+Generate and manage sales challans with order status tracking.
+
+![Challans](screenshots/challans.png)
+
+---
+
+## 👨‍💼 Users
+Role-based user management with activation and password reset.
+
+![Users](screenshots/users.png)
