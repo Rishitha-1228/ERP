@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { query, withTransaction } from "../config/database";
 import { AppError } from "../utils/AppError";
 import { parsePagination, buildMeta, generateChallanNumber } from "../utils/helpers";
+import { generateChallanPdf } from "../utils/generateChallanPdf";
 
 export async function list(req: Request, res: Response) {
   const { page, limit, offset } = parsePagination(req.query);
@@ -236,4 +237,38 @@ async function attachItems(challanRows: any[]) {
     });
   }
   return results;
+}
+export async function downloadPdf(req: Request, res: Response) {
+  const { id } = req.params;
+
+  const result = await query(
+    `SELECT ch.*, c.name AS customer_name, c.mobile AS customer_mobile, u.name AS created_by_name
+     FROM challans ch
+     JOIN customers c ON c.id = ch.customer_id
+     LEFT JOIN users u ON u.id = ch.created_by
+     WHERE ch.id = $1`,
+    [id]
+  );
+  const challan = result.rows[0];
+  if (!challan) throw AppError.notFound("Challan not found");
+
+  const [withItems] = await attachItems([challan]);
+
+  generateChallanPdf(
+    {
+      challanNumber: withItems.challanNumber,
+      date: withItems.createdAt,
+      status: withItems.status,
+      customerName: withItems.customerName,
+      customerMobile: withItems.customerMobile,
+      createdByName: withItems.createdByName,
+      items: withItems.items.map((i: any) => ({
+        productName: i.productName,
+        productSku: i.productSku,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+      })),
+    },
+    res
+  );
 }

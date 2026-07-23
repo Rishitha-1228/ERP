@@ -20,6 +20,7 @@ const createChallanSchema = z.object({
 
 router.get("/", challanController.list);
 router.get("/:id", challanController.getById);
+router.get("/:id/pdf", challanController.downloadPdf);
 router.post("/", authorize("ADMIN", "SALES"), validate(createChallanSchema), challanController.create);
 router.post("/:id/confirm", authorize("ADMIN", "SALES", "WAREHOUSE"), challanController.confirm);
 router.post("/:id/cancel", authorize("ADMIN", "SALES", "WAREHOUSE"), challanController.cancel);
