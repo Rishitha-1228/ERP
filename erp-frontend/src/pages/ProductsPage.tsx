@@ -5,6 +5,8 @@ import {
   createProduct,
   updateProduct,
   deactivateProduct,
+  transferProductWarehouse,
+  fetchWarehouses,
 } from "../api/products";
 import { Product } from "../types";
 
@@ -31,6 +33,14 @@ export function ProductsPage() {
   const [saving, setSaving] = useState(false);
 
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Transfer modal state
+  const [transferProduct, setTransferProduct] = useState<Product | null>(null);
+  const [warehouses, setWarehouses] = useState<string[]>([]);
+  const [transferWarehouse, setTransferWarehouse] = useState("");
+  const [transferReason, setTransferReason] = useState("");
+  const [transferSaving, setTransferSaving] = useState(false);
+  const [transferError, setTransferError] = useState("");
 
   async function load() {
     setLoading(true);
@@ -73,6 +83,56 @@ export function ProductsPage() {
     });
 
     setModalOpen(true);
+  }
+
+  async function openTransfer(product: Product) {
+    setTransferProduct(product);
+    setTransferWarehouse("");
+    setTransferReason("");
+    setTransferError("");
+
+    try {
+      const list = await fetchWarehouses();
+      setWarehouses(list);
+    } catch {
+      setWarehouses([]);
+    }
+  }
+
+  async function handleTransfer() {
+    if (!transferProduct) return;
+    setTransferError("");
+
+    if (!transferWarehouse.trim()) {
+      setTransferError("Select or enter a destination warehouse.");
+      return;
+    }
+
+    setTransferSaving(true);
+
+    try {
+      await transferProductWarehouse(transferProduct.id, {
+        warehouse: transferWarehouse,
+        reason: transferReason || undefined,
+      });
+
+      setSuccessMessage(
+        `✅ Product transferred to ${transferWarehouse} successfully.`
+      );
+
+      setTransferProduct(null);
+      await load();
+
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+    } catch (err: any) {
+      setTransferError(
+        err?.response?.data?.message || "Failed to transfer product."
+      );
+    } finally {
+      setTransferSaving(false);
+    }
   }
 
   async function handleSave() {
@@ -307,6 +367,15 @@ export function ProductsPage() {
                   </button>
 
                   <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() =>
+                      openTransfer(product)
+                    }
+                  >
+                    Transfer
+                  </button>
+
+                  <button
                     className="btn btn-danger btn-sm"
                     onClick={() =>
                       handleDeactivate(product)
@@ -520,6 +589,84 @@ export function ProductsPage() {
                   : editing
                   ? "Update Product"
                   : "Create Product"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {transferProduct && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setTransferProduct(null)}
+        >
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>Transfer Warehouse</h2>
+
+            <p style={{ marginBottom: 16 }}>
+              Moving <b>{transferProduct.name}</b> from{" "}
+              <b>{transferProduct.warehouse || "Unassigned"}</b> to a new
+              warehouse.
+            </p>
+
+            <div className="form-group">
+              <label className="form-label">Destination Warehouse</label>
+
+              <input
+                className="input"
+                list="warehouse-options"
+                placeholder="Select or type a warehouse..."
+                value={transferWarehouse}
+                onChange={(e) => setTransferWarehouse(e.target.value)}
+              />
+              <datalist id="warehouse-options">
+                {warehouses.map((w) => (
+                  <option key={w} value={w} />
+                ))}
+              </datalist>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Reason (optional)</label>
+
+              <input
+                className="input"
+                placeholder="e.g. Rebalancing stock across locations"
+                value={transferReason}
+                onChange={(e) => setTransferReason(e.target.value)}
+              />
+            </div>
+
+            {transferError && (
+              <div className="error-text" style={{ marginBottom: 12 }}>
+                {transferError}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+                marginTop: 20,
+              }}
+            >
+              <button
+                className="btn btn-secondary"
+                onClick={() => setTransferProduct(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="btn btn-primary"
+                disabled={transferSaving}
+                onClick={handleTransfer}
+              >
+                {transferSaving ? "Transferring..." : "Transfer"}
               </button>
             </div>
           </div>

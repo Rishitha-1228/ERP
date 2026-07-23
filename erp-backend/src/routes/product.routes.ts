@@ -25,7 +25,12 @@ const createSchema = z.object({
 const updateSchema = z.object({
   body: productBodySchema.partial(),
 });
-
+const transferSchema = z.object({
+  body: z.object({
+    warehouse: z.string().min(1),
+    reason: z.string().optional(),
+  }),
+});
 // =========================
 // Lookup Routes
 // =========================
@@ -61,6 +66,13 @@ router.patch(
   "/:id/deactivate",
   authorize("ADMIN", "WAREHOUSE"),
   productController.deactivate
+);
+
+router.patch(
+  "/:id/transfer",
+  authorize("ADMIN", "WAREHOUSE"),
+  validate(transferSchema),
+  productController.transferWarehouse
 );
 
 export default router;

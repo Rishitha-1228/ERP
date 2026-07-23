@@ -57,7 +57,17 @@ export async function deactivateProduct(id: string) {
 
   return res.data;
 }
+export async function transferProductWarehouse(
+  id: string,
+  payload: { warehouse: string; reason?: string }
+) {
+  const res = await api.patch<{
+    success: boolean;
+    message: string;
+  }>(`/products/${id}/transfer`, payload);
 
+  return res.data;
+}
 export async function fetchCategories() {
   const res = await api.get<{
     success: boolean;

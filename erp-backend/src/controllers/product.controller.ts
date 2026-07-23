@@ -308,7 +308,65 @@ export async function deactivate(
     message: "Product deactivated successfully.",
   });
 }
+export async function transferWarehouse(
+  req: Request,
+  res: Response
+) {
+  const { id } = req.params;
+  const { warehouse, reason } = req.body;
 
+  const productRes = await query(
+    `SELECT p.*, w.name AS current_warehouse_name
+     FROM products p
+     LEFT JOIN warehouses w ON w.id = p.warehouse_id
+     WHERE p.id = $1`,
+    [id]
+  );
+
+  const product = productRes.rows[0];
+
+  if (!product) {
+    throw AppError.notFound("Product not found");
+  }
+
+  const fromWarehouseName = product.current_warehouse_name || "Unassigned";
+
+  if (fromWarehouseName === warehouse) {
+    throw AppError.badRequest(
+      `Product is already assigned to warehouse '${warehouse}'`
+    );
+  }
+
+  const newWarehouseId = await resolveLookup("warehouses", warehouse);
+
+  await query(
+    `UPDATE products
+     SET warehouse_id = $1, updated_at = NOW()
+     WHERE id = $2`,
+    [newWarehouseId, id]
+  );
+
+  // Log the transfer as a stock movement, if there's stock to record
+  if (product.current_stock > 0) {
+    await query(
+      `INSERT INTO stock_movements (product_id, quantity, movement_type, reason, created_by)
+       VALUES ($1,$2,'ADJUST',$3,$4)`,
+      [
+        id,
+        product.current_stock,
+        reason
+          ? `Transferred from ${fromWarehouseName} to ${warehouse}: ${reason}`
+          : `Transferred from ${fromWarehouseName} to ${warehouse}`,
+        req.user!.id,
+      ]
+    );
+  }
+
+  res.status(200).json({
+    success: true,
+    message: `Product transferred from ${fromWarehouseName} to ${warehouse} successfully.`,
+  });
+}
 export async function listCategories(
   _req: Request,
   res: Response
